@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Weather Website</title>
+
+    <link rel="icon" href="Weather.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="Weather.png">
+    <link rel="shortcut icon" href="Weather.png">
+
+  <!-- Bootstrap -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- jQuery + jQuery UI -->
+  <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+  <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+  <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="theme-default light-mode">
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-light bg-light custom-header mb-4">
+  <div class="container-fluid">
+      <a class="navbar-brand" href="#" onclick="location.reload();">
+  <img src="Weather.png" alt="Weather Logo" class="weather-logo">
+</a>
+
+
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent"
+      aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarContent">
+      <ul class="navbar-nav ms-auto gap-2">
+        <li class="nav-item"><a class="nav-link" href="references.html" target="_blank">References</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<main class="container">
+  <h1 class="text-center mb-4">Weather Website</h1>
+  <!-- City Input -->
+  <div class="input-row d-flex flex-wrap justify-content-center gap-2 mb-2">
+    <input id="city" class="form-control input-small" placeholder="Enter city or postal code">
+  </div>
+
+  <!-- Language and Theme Pickers -->
+  <div class="input-row d-flex flex-wrap justify-content-center gap-2 mb-3">
+    <select id="language" class="form-select select-small" title="Select Language">
+      <option value="en" selected>English</option>
+      <option value="fr">Français</option>
+      <option value="es">Español</option>
+      <option value="de">Deutsch</option>
+      <option value="it">Italiano</option>
+      <option value="ru">Русский</option>
+      <option value="zh_cn">中文</option>
+      <option value="ar">العربية</option>
+      <option value="ja">日本語</option>
+      <option value="pt">Português</option>
+      <option value="tr">Türkçe</option>
+    </select>
+    <select id="theme-picker" class="form-select select-small" title="Select Theme">
+      <option value="theme-default" selected>Default</option>
+      <option value="theme-blue">Blue</option>
+      <option value="theme-green">Green</option>
+      <option value="theme-sunny">Sunny</option>
+    </select>
+  </div>
+
+  <!-- Buttons Row -->
+  <div class="button-row d-flex justify-content-center gap-2 mb-4">
+      <button class="btn btn-warning" id="speechBtn" title="Speak city name">
+    🎤 Speak
+    </button>
+    <button class="btn btn-secondary" id="locBtn">Use My Location</button>
+    <button class="btn btn-outline-primary" id="tempToggleBtn">°C / °F</button>
+    <button class="btn btn-outline-dark" id="modeToggleBtn">Toggle Light/Dark</button>
+  </div>
+
+  <!-- Weather Info -->
+  <div id="weather-info" class="mb-4"></div>
+
+  <!-- Charts -->
+  <section id="charts" class="mb-4">
+    <h4 class="text-center mb-3">Temperature Trends</h4>
+    <div class="chart-row d-flex justify-content-center flex-wrap gap-4">
+      <div class="chart-box">
+        <h5 class="text-center mb-2">Next 24 Hours</h5>
+        <canvas id="hourlyChart"></canvas>
+      </div>
+      <div class="chart-box">
+        <h5 class="text-center mb-2">Next 7 Days</h5>
+        <canvas id="dailyChart"></canvas>
+      </div>
+    </div>
+  </section>
+
+  <!-- Forecasts -->
+  <section>
+    <h4>Hourly Forecast</h4>
+    <div id="hourly-forecast" class="forecast-scroll mb-3"></div>
+
+    <h4>Weekly Forecast</h4>
+    <div id="weekly-forecast" class="forecast-scroll"></div>
+  </section>
+</main>
+
+
+<footer class="text-center py-3 bg-dark text-light mt-4">
+  <p>&copy; <span id="footer-year"></span> Tahir Khatri</p>
+</footer>
+
+<script src="Weather.js"></script>
+
+<script>
+  // Automatically update footer year
+  document.getElementById('footer-year').textContent = new Date().getFullYear();
+  // ---------- Theme Picker ----------
+  const themeSelect = document.getElementById('theme-picker');
+  const savedTheme = localStorage.getItem('theme') || 'theme-default';
+  document.body.classList.add(savedTheme);
+  themeSelect.value = savedTheme;
+
+  themeSelect.addEventListener('change', () => {
+    document.body.classList.remove('theme-default','theme-blue','theme-green','theme-sunny');
+    const selected = themeSelect.value;
+    document.body.classList.add(selected);
+    localStorage.setItem('theme', selected);
+  });
+
+  // ---------- Light/Dark Mode Toggle ----------
+  const modeBtn = document.getElementById('modeToggleBtn');
+  let currentMode = localStorage.getItem('mode') || 'light';
+
+  function applyMode(mode) {
+    document.body.classList.remove('light-mode','dark-mode');
+    document.body.classList.add(mode + '-mode');
+    localStorage.setItem('mode', mode);
+  }
+
+  applyMode(currentMode);
+
+  modeBtn.addEventListener('click', () => {
+    currentMode = currentMode === 'light' ? 'dark' : 'light';
+    applyMode(currentMode);
+  });
+</script>
+</body>
+</html>

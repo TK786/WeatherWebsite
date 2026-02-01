@@ -1,0 +1,240 @@
+:root {
+  --blue: #1565c0;
+  --green: darkgreen;
+  --yellow: #fbc02d;
+  --light-bg: #f8f9fa;
+  --dark-bg: #222;
+  --card-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
+
+/* ---------- BODY ---------- */
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  background-color: lightblue;
+  color: #222;
+  margin: 0;
+  padding: 0;
+}
+
+/* ---------- FLEX UTILITIES ---------- */
+.centered-container,
+.input-row,
+.button-row,
+.chart-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 15px;
+}
+
+.input-row { gap: 10px; }
+.button-row { margin-bottom: 20px; }
+.chart-row { gap: 20px; }
+
+/* ---------- BUTTONS ---------- */
+.btn {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-width: 120px;
+  padding: 10px 20px;
+  border-radius: 30px;
+  border: none;
+  background-color: var(--green);
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+.btn:hover { background-color: #0a6e0a; }
+
+/* ---------- INPUTS ---------- */
+.curved-search,
+.form-select.curved-search {
+  width: 170px !important;
+  max-width: 170px !important;
+  flex: 0 0 auto;
+  border-radius: 2rem;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  padding: 8px 12px;
+  font-size: 16px;
+  box-sizing: border-box;
+}
+
+.input-row > * {
+  flex: 0 0 auto !important;
+  width: auto !important;
+}
+
+
+/* ---------- AUTOCOMPLETE ---------- */
+.ui-autocomplete {
+  width: 100% !important;
+  max-width: 250px;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  border: 1px solid #ccc;
+  background-color: #fff;
+  max-height: 300px;
+  overflow-y: auto;
+  padding: 0;
+  margin-top: 2px;
+}
+.ui-menu-item { margin: 2px 5px; border-radius: 8px; }
+.ui-menu-item-wrapper { padding: 8px 12px; cursor: pointer; }
+.ui-menu-item-wrapper:hover { background-color: #f0f0f0; }
+
+/* ---------- LINKS ---------- */
+.curved-link {
+  display: inline-block;
+  border-radius: 20px;
+  background-color: var(--green);
+  color: #fff !important;
+  padding: 6px 14px;
+  text-decoration: none;
+  transition: background 0.3s;
+}
+.curved-link:hover { background-color: #0a6e0a; }
+
+/* ---------- FORECAST CARDS ---------- */
+.forecast-card {
+  flex: 0 0 auto;
+  min-width: 110px;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: var(--card-shadow);
+  text-align: center;
+  padding: 10px;
+  transition: transform 0.2s;
+}
+.forecast-card:hover { transform: translateY(-3px); }
+.forecast-card img { width: 48px; height: 48px; margin-bottom: 5px; }
+
+/* ---------- SCROLL ---------- */
+.forecast-scroll {
+  display: flex;
+  overflow-x: auto;
+  gap: 10px;
+  padding: 10px;
+}
+.forecast-scroll::-webkit-scrollbar { height: 8px; }
+.forecast-scroll::-webkit-scrollbar-thumb {
+  background-color: rgba(0,0,0,0.3);
+  border-radius: 4px;
+}
+
+/* ---------- DAY PROGRESS BAR ---------- */
+#day-progress-container {
+  width: 100%;
+  height: 12px;
+  background: #eee;
+  border-radius: 6px;
+  overflow: hidden;
+  margin-top: 5px;
+}
+#day-progress-bar {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(to right, #f9d423, #ff4e50);
+  transition: width 0.5s ease;
+}
+#day-progress-text { font-size: 14px; text-align: right; }
+
+/* ---------- CHART BOXES ---------- */
+.chart-box {
+  flex: 1 1 400px;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: var(--card-shadow);
+  padding: 15px;
+}
+.chart-box h5 { text-align: center; margin-bottom: 10px; }
+
+/* ---------- DARK MODE ---------- */
+body.dark-mode { background-color: var(--dark-bg); color: var(--light-bg); }
+body.dark-mode .card,
+body.dark-mode .forecast-card,
+body.dark-mode .chart-box {
+  background-color: #333;
+  color: #f8f9fa;
+}
+body.dark-mode .btn { background-color: #555; color: #fff; }
+body.dark-mode .btn:hover { background-color: #777; }
+body.dark-mode .curved-link { background-color: #555; }
+body.dark-mode .curved-link:hover { background-color: #777; }
+
+/* ---------- THEMES ---------- */
+body.theme-blue {
+  background: #e3f2fd;
+  color: var(--blue);
+}
+body.theme-blue .card,
+body.theme-blue .forecast-card,
+body.theme-blue .chart-box { background: #bbdefb; color: var(--blue); }
+body.theme-blue .btn { background-color: var(--blue); }
+body.theme-blue .btn:hover { background-color: #0d47a1; }
+body.theme-blue .curved-link { background-color: var(--blue); }
+body.theme-blue .curved-link:hover { background-color: #0d47a1; }
+
+body.theme-green {
+  background: #e8f5e9;
+  color: var(--green);
+}
+body.theme-green .card,
+body.theme-green .forecast-card,
+body.theme-green .chart-box { background: #c8e6c9; color: var(--green); }
+body.theme-green .btn { background-color: var(--green); }
+body.theme-green .btn:hover { background-color: darkgreen; }
+body.theme-green .curved-link { background-color: var(--green); }
+body.theme-green .curved-link:hover { background-color: darkgreen; }
+
+body.theme-sunny {
+  background: #fffde7;
+  color: var(--yellow);
+}
+body.theme-sunny .card,
+body.theme-sunny .forecast-card,
+body.theme-sunny .chart-box { background: #fff9c4; color: var(--yellow); }
+body.theme-sunny .btn { background-color: var(--yellow); color: #222; }
+body.theme-sunny .btn:hover { background-color: #f9a825; }
+body.theme-sunny .curved-link { background-color: var(--yellow); color: #222; }
+body.theme-sunny .curved-link:hover { background-color: #f9a825; }
+
+/* ---------- FOOTER ---------- */
+footer { font-size: 0.9rem; }
+footer.bg-dark { background-color: lightblue !important; color: #222 !important; }
+
+/* ---------- RESPONSIVE ---------- */
+@media (max-width: 768px) {
+  .forecast-card { min-width: 90px; }
+  h1 { font-size: 1.6rem; }
+  .curved-search { width: 200px; }
+  .btn { min-width: 100px; padding: 8px 16px; }
+  .ui-autocomplete { max-width: 200px !important; }
+}
+
+/* ---------- HEADER ---------- */
+.navbar.custom-header {
+  background-color: lightblue !important;
+  color: #222 !important;
+}
+.navbar.custom-header .navbar-brand,
+.navbar.custom-header .nav-link {
+  color: #222 !important;
+}
+.navbar.custom-header .nav-link:hover {
+  color: #0a6e0a !important;
+}
+
+/* Add your custom styles here */
+
+.weather-logo {
+  height: 40px;
+}
+
+.aqi-badge { padding: 4px 10px; border-radius: 12px; font-weight: bold; color: #fff; margin-left: 6px; display: inline-block; }
+.aqi-good { background-color: #2ecc71; }
+.aqi-fair { background-color: #f1c40f; }
+.aqi-moderate { background-color: #e67e22; }
+.aqi-poor { background-color: #e74c3c; }
+.aqi-very-poor { background-color: #8e44ad; }
+.aqi-unknown { background-color: #7f8c8d; }

@@ -140,13 +140,20 @@
     let nextURL = url;
 
     while (nextURL && records.length < count) {
-      const page = await fetchJSON(nextURL);
-      records.push(...page.data);
-      nextURL = page.next;
+        const page = await fetchJSON(nextURL);
+        records.push(...page.data);
+
+        if (page.next) {
+            const next = new URL(page.next, url);
+            next.protocol = 'https:';
+            nextURL = next.toString();
+        } else {
+            nextURL = null;
+        }
     }
 
     return records.slice(0, count);
-  }
+}
 
   async function fetchWeather(lat, lon) {
     const currentURL = oneCallURL('current', lat, lon);

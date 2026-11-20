@@ -124,10 +124,59 @@
   });
 
   // ------------ WEATHER FETCH ------------
+  function oneCallURL(endpoint, lat, lon) {
+    const params = new URLSearchParams({
+      lat: String(lat),
+      lon: String(lon),
+      appid: apiKey,
+      units: 'metric',
+      lang
+    });
+    return `${apiBase}/data/4.0/onecall/${endpoint}?${params}`;
+  }
+
+  async function fetchTimeline(url, count) {
+    const records = [];
+    let nextURL = url;
+
+    while (nextURL && records.length < count) {
+      const page = await fetchJSON(nextURL);
+      records.push(...page.data);
+      nextURL = page.next;
+    }
+
+    return records.slice(0, count);
+  }
+
   async function fetchWeather(lat, lon) {
-    const weatherURL = `${apiBase}/data/3.0/onecall?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric&lang=${lang}&exclude=minutely`;
+    const currentURL = oneCallURL('current', lat, lon);
+    const hourlyURL = oneCallURL('timeline/1h', lat, lon);
+    const dailyURL = oneCallURL('timeline/1day', lat, lon);
     const aqiURL = `${apiBase}/data/2.5/air_pollution?lat=${lat}&lon=${lon}&appid=${apiKey}`;
-    const [weather, aqi] = await Promise.all([fetchJSON(weatherURL), fetchJSON(aqiURL)]);
+
+    const [currentResponse, hourly, daily, aqi] = await Promise.all([
+      fetchJSON(currentURL),
+      fetchTimeline(hourlyURL, 25),
+      fetchTimeline(dailyURL, 10),
+      fetchJSON(aqiURL)
+    ]);
+
+    const current = currentResponse.data[0];
+    if (!current) throw new Error('One Call API 4.0 returned no current weather data');
+
+    const alertIds = [...new Set(current.alerts || [])];
+    const alerts = await Promise.all(alertIds.map(async id => {
+      const alertURL = `${apiBase}/data/4.0/onecall/alert/${encodeURIComponent(id)}?appid=${apiKey}`;
+      try {
+        const alertResponse = await fetchJSON(alertURL);
+        return alertResponse.data?.[0] || alertResponse;
+      } catch (error) {
+        console.error(`Could not load weather alert ${id}:`, error);
+        return null;
+      }
+    }));
+
+    const weather = { current, hourly, daily, alerts: alerts.filter(Boolean) };
     return { weather, aqi };
   }
 
@@ -171,7 +220,7 @@
 
   async function renderForecasts(weather) {
     const hourlyNext24 = weather.hourly.slice(1, 25);
-    const dailyNext7 = weather.daily.slice(1, 8);
+    const dailyNext10 = weather.daily.slice(0, 10);
 
     el.hourlyForecast.empty();
     hourlyNext24.forEach(h =>
@@ -183,7 +232,7 @@
     );
 
     el.weeklyForecast.empty();
-    dailyNext7.forEach(d =>
+    dailyNext10.forEach(d =>
       el.weeklyForecast.append(createForecastCard({
         title: new Date(d.dt * 1000).toLocaleDateString([], { weekday: 'short' }),
         icon: d.weather[0].icon,
@@ -196,8 +245,8 @@
 
     const hourlyLabels = hourlyNext24.map(h => new Date(h.dt * 1000).getHours());
     const hourlyTemps = hourlyNext24.map(h => displayUnit === UI.CELSIUS ? h.temp : cToF(h.temp));
-    const dailyLabels = dailyNext7.map(d => new Date(d.dt * 1000).toLocaleDateString([], { weekday: 'short' }));
-    const dailyTemps = dailyNext7.map(d => displayUnit === UI.CELSIUS ? d.temp.day : cToF(d.temp.day));
+    const dailyLabels = dailyNext10.map(d => new Date(d.dt * 1000).toLocaleDateString([], { weekday: 'short' }));
+    const dailyTemps = dailyNext10.map(d => displayUnit === UI.CELSIUS ? d.temp.day : cToF(d.temp.day));
 
     if (hourlyChart) hourlyChart.destroy();
     hourlyChart = new Chart(document.getElementById('hourlyChart').getContext('2d'), {
@@ -226,6 +275,28 @@
   }
 
   // ------------ WEATHER ALERTS ------------
+  function escapeHTML(value) {
+    return String(value).replace(/[&<>"']/g, char => ({
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#39;'
+    })[char]);
+  }
+
+  function getAlertDescription(alert) {
+    if (!Array.isArray(alert.description)) return alert.description || '';
+
+    const localized = alert.description.find(item =>
+      item.language?.toLowerCase().startsWith(lang.toLowerCase())
+    );
+    const english = alert.description.find(item =>
+      item.language?.toLowerCase().startsWith('en')
+    );
+    return (localized || english || alert.description[0])?.description || '';
+  }
+
   function renderAlerts(alerts) {
     if (!alerts || !alerts.length) return;
     el.weatherInfo.prepend(
@@ -233,10 +304,10 @@
         <h5>Weather Alerts</h5>
         ${alerts.map(alert => `
           <div class="alert alert-warning mb-2">
-            <strong>${alert.event}</strong><br>
+            <strong>${escapeHTML(alert.event || 'Weather alert')}</strong><br>
             <small>${new Date(alert.start * 1000).toLocaleString()} - ${new Date(alert.end * 1000).toLocaleString()}</small><br>
-            <span>${alert.description.replace(/\n/g, '<br>')}</span>
-            ${alert.sender_name ? `<div><em>Source: ${alert.sender_name}</em></div>` : ''}
+            <span>${escapeHTML(getAlertDescription(alert)).replace(/\n/g, '<br>')}</span>
+            ${alert.sender_name ? `<div><em>Source: ${escapeHTML(alert.sender_name)}</em></div>` : ''}
           </div>`).join('')}
       </div>`
     );
@@ -325,6 +396,6 @@
   // ------------ INIT ------------
   window.WeatherApp = { updateWeather };
   function fetchWeatherData() { if(currentLat && currentLon) updateWeather(currentLat, currentLon); }
-  setInterval(fetchWeatherData, 60000);
+  setInterval(fetchWeatherData, 600000);
 
 })();

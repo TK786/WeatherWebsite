@@ -48,6 +48,7 @@
   <!-- City Input -->
   <div class="input-row d-flex flex-wrap justify-content-center gap-2 mb-2">
     <input id="city" class="form-control input-small" placeholder="Enter city or postal code">
+    <button class="btn btn-primary" id="goBtn" type="button">Get Weather</button>
   </div>
 
   <!-- Language and Theme Pickers -->
@@ -95,7 +96,7 @@
         <canvas id="hourlyChart"></canvas>
       </div>
       <div class="chart-box">
-        <h5 class="text-center mb-2">Next 7 Days</h5>
+        <h5 class="text-center mb-2">Next 10 Days</h5>
         <canvas id="dailyChart"></canvas>
       </div>
     </div>
@@ -106,7 +107,7 @@
     <h4>Hourly Forecast</h4>
     <div id="hourly-forecast" class="forecast-scroll mb-3"></div>
 
-    <h4>Weekly Forecast</h4>
+    <h4>10-Day Forecast</h4>
     <div id="weekly-forecast" class="forecast-scroll"></div>
   </section>
 </main>

@@ -161,15 +161,28 @@
     const dailyURL = oneCallURL('timeline/1day', lat, lon);
     const aqiURL = `${apiBase}/data/2.5/air_pollution?lat=${lat}&lon=${lon}&appid=${apiKey}`;
 
-    const [currentResponse, hourly, daily, aqi] = await Promise.all([
+    const [currentResult, hourlyResult, dailyResult, aqiResult] = await Promise.allSettled([
       fetchJSON(currentURL),
       fetchTimeline(hourlyURL, 25),
       fetchTimeline(dailyURL, 10),
       fetchJSON(aqiURL)
     ]);
 
+    if (currentResult.status === 'rejected') throw currentResult.reason;
+
+    const currentResponse = currentResult.value;
     const current = currentResponse.data[0];
     if (!current) throw new Error('One Call API 4.0 returned no current weather data');
+
+    const hourly = hourlyResult.status === 'fulfilled' ? hourlyResult.value : [];
+    const daily = dailyResult.status === 'fulfilled' ? dailyResult.value : [];
+    const aqi = aqiResult.status === 'fulfilled' ? aqiResult.value : null;
+    const errors = [
+      ['Hourly forecast', hourlyResult],
+      ['Daily forecast', dailyResult],
+      ['Air quality', aqiResult]
+    ].filter(([, result]) => result.status === 'rejected')
+      .map(([label, result]) => `${label}: ${result.reason.message}`);
 
     const alertIds = [...new Set(current.alerts || [])];
     const alerts = await Promise.all(alertIds.map(async id => {
@@ -184,7 +197,7 @@
     }));
 
     const weather = { current, hourly, daily, alerts: alerts.filter(Boolean) };
-    return { weather, aqi };
+    return { weather, aqi, errors };
   }
 
   // ------------ RENDER MAIN WEATHER ------------
@@ -230,23 +243,31 @@
     const dailyNext10 = weather.daily.slice(0, 10);
 
     el.hourlyForecast.empty();
-    hourlyNext24.forEach(h =>
-      el.hourlyForecast.append(createForecastCard({
+    if (hourlyNext24.length) {
+      hourlyNext24.forEach(h =>
+        el.hourlyForecast.append(createForecastCard({
         title: new Date(h.dt * 1000).toLocaleTimeString([], { hour: '2-digit' }),
         icon: h.weather[0].icon,
         temp: fmtTemp(h.temp)
-      }))
-    );
+        }))
+      );
+    } else {
+      el.hourlyForecast.text('Hourly forecast unavailable.');
+    }
 
     el.weeklyForecast.empty();
-    dailyNext10.forEach(d =>
-      el.weeklyForecast.append(createForecastCard({
+    if (dailyNext10.length) {
+      dailyNext10.forEach(d =>
+        el.weeklyForecast.append(createForecastCard({
         title: new Date(d.dt * 1000).toLocaleDateString([], { weekday: 'short' }),
         icon: d.weather[0].icon,
         temp: fmtTemp(d.temp.day),
         extra: `Min: ${fmtTemp(d.temp.min)} / Max: ${fmtTemp(d.temp.max)}`
-      }))
-    );
+        }))
+      );
+    } else {
+      el.weeklyForecast.text('Daily forecast unavailable.');
+    }
 
     await loadChartJS();
 
@@ -256,18 +277,18 @@
     const dailyTemps = dailyNext10.map(d => displayUnit === UI.CELSIUS ? d.temp.day : cToF(d.temp.day));
 
     if (hourlyChart) hourlyChart.destroy();
-    hourlyChart = new Chart(document.getElementById('hourlyChart').getContext('2d'), {
+    hourlyChart = hourlyTemps.length ? new Chart(document.getElementById('hourlyChart').getContext('2d'), {
       type: 'line',
       data: { labels: hourlyLabels, datasets: [{ label: `Temp`, data: hourlyTemps, borderColor: '#ff7043', backgroundColor: 'rgba(255,112,67,0.2)', fill: true }] },
       options: { responsive: true, plugins: { legend: { display: false } } }
-    });
+    }) : null;
 
     if (dailyChart) dailyChart.destroy();
-    dailyChart = new Chart(document.getElementById('dailyChart').getContext('2d'), {
+    dailyChart = dailyTemps.length ? new Chart(document.getElementById('dailyChart').getContext('2d'), {
       type: 'bar',
       data: { labels: dailyLabels, datasets: [{ label: `Temp`, data: dailyTemps, backgroundColor: 'rgba(54,162,235,0.5)', borderColor: '#36A2EB', borderWidth: 1 }] },
       options: { responsive: true, plugins: { legend: { display: false } } }
-    });
+    }) : null;
   }
 
   async function loadChartJS() {
@@ -329,7 +350,15 @@
       renderMain(serverData.weather.current, serverData.aqi);
       if (serverData.weather.alerts && serverData.weather.alerts.length) renderAlerts(serverData.weather.alerts);
       await renderForecasts(serverData.weather);
-    } catch (e) { console.error(e); }
+      if (serverData.errors.length) {
+        el.weatherInfo.prepend(
+          `<div class="alert alert-warning" role="status">${serverData.errors.map(escapeHTML).join('<br>')}</div>`
+        );
+      }
+    } catch (e) {
+      console.error(e);
+      el.weatherInfo.html(`<div class="alert alert-danger" role="alert">Unable to load weather: ${escapeHTML(e.message)}</div>`);
+    }
   }
 
   // ------------ EVENT LISTENERS ------------

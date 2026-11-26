@@ -65,6 +65,20 @@ body {
   width: auto !important;
 }
 
+#language,
+#theme-picker {
+  width: 170px;
+  padding-left: 2.25rem;
+  padding-right: 2.25rem;
+  text-align: center;
+  text-align-last: center;
+}
+
+#language option,
+#theme-picker option {
+  text-align: center;
+}
+
 
 /* ---------- AUTOCOMPLETE ---------- */
 .ui-autocomplete {
